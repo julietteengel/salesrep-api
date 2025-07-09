@@ -1,0 +1,36 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is the backend for Salesrep app",
+        "title": "Salesrep backend API",
+        "contact": {
+            "name": "Juliette Engel",
+            "email": "juliette.engel@skema.edu"
+        }
+    },
+    "paths": {
+        "/api/v1/salesreps": {
+            "get": {
+                "description": "Get a list of all sales representatives",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "salesreps"
+                ],
+                "summary": "List salesreps",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,54 @@
+services:
+  backend-api:
+    profiles: ["default"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - ./cmd/server/.env
+    ports:
+      - "4000:4000"
+    volumes:
+      - .:/app
+    networks:
+      - backend-network
+
+  backend-api-dev:
+    profiles: ["dev"]
+    build:
+      context: .
+      dockerfile: dev.Dockerfile
+    command: sh -c "air -c .air.toml"
+    environment:
+      - GOFLAGS=-buildvcs=false
+      - SAM_ENV=LOCAL
+    env_file:
+      - ./cmd/server/.env
+    ports:
+      - "4000:4000"
+    volumes:
+      - .:/app
+      - ./cmd/server/.env:/app/cmd/server/.env
+    networks:
+      - backend-network
+
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: salesrep-api
+    volumes:
+      - postgres-db:/var/lib/postgresql/data
+    networks:
+      - backend-network
+
+networks:
+  backend-network:
+    driver: bridge
+
+volumes:
+  postgres-db:
+    driver: local

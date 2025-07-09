@@ -1,0 +1,23 @@
+info:
+  contact:
+    email: juliette.engel@skema.edu
+    name: Juliette Engel
+  description: This is the backend for Salesrep app
+  title: Salesrep backend API
+paths:
+  /api/v1/salesreps:
+    get:
+      description: Get a list of all sales representatives
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List salesreps
+      tags:
+      - salesreps
+swagger: "2.0"
