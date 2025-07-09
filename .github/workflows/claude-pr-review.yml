@@ -1,0 +1,54 @@
+name: Claude AI PR Reviewer
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v3
+
+      - name: Get PR Diff
+        id: get_diff
+        run: |
+          echo "DIFF<<EOF" >> $GITHUB_ENV
+          gh pr diff ${{ github.event.pull_request.number }} >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Ask Claude to review PR
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          BODY=$(cat <<EOF
+          You are a senior software engineer. Review the following GitHub Pull Request diff and provide comments, suggestions, and any improvements needed.
+
+          Diff:
+          ${DIFF}
+          EOF
+          )
+
+          RESPONSE=$(curl -s https://api.anthropic.com/v1/messages \
+            -H "x-api-key: ${ANTHROPIC_API_KEY}" \
+            -H "anthropic-version: 2023-06-01" \
+            -H "content-type: application/json" \
+            -d "{
+              \"model\": \"claude-3-sonnet-20240229\",
+              \"max_tokens\": 1000,
+              \"messages\": [
+                {\"role\": \"user\", \"content\": \"${BODY}\"}
+              ]
+            }" | jq -r '.content[0].text')
+
+          echo "$RESPONSE" > comment.md
+
+      - name: Comment PR
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body-path: comment.md
