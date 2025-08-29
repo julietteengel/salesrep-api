@@ -3,9 +3,9 @@ module github.com/julietteengel/salesrep-api
 go 1.24.2
 
 require (
+	github.com/davecgh/go-spew v1.1.1
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/joho/godotenv v1.5.1
-	github.com/labstack/echo-jwt/v4 v4.3.1
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/lib/pq v1.10.9
 	github.com/pkg/errors v0.9.1
@@ -14,6 +14,7 @@ require (
 	github.com/swaggo/echo-swagger v1.4.1
 	github.com/swaggo/swag v1.16.4
 	go.uber.org/fx v1.24.0
+	golang.org/x/text v0.26.0
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.30.0
 )
@@ -55,7 +56,6 @@ require (
 	golang.org/x/net v0.41.0 // indirect
 	golang.org/x/sync v0.16.0 // indirect
 	golang.org/x/sys v0.34.0 // indirect
-	golang.org/x/text v0.26.0 // indirect
 	golang.org/x/time v0.12.0 // indirect
 	golang.org/x/tools v0.34.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

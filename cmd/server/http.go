@@ -1,20 +1,18 @@
 package main
 
 import (
-	"github.com/golang-jwt/jwt/v5"
 	_ "github.com/julietteengel/salesrep-api/docs"
 	"github.com/julietteengel/salesrep-api/internal/common"
-	"github.com/julietteengel/salesrep-api/pkg/auth"
-	echojwt "github.com/labstack/echo-jwt/v4"
+	customMiddleware "github.com/julietteengel/salesrep-api/pkg/middleware"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/spf13/viper"
 	"github.com/swaggo/echo-swagger"
+	"gorm.io/gorm"
 
 	"net/http"
 )
 
-func NewEchoServer(controllers []common.Controller, authService auth.IAuthService) *echo.Echo {
+func NewEchoServer(controllers []common.Controller, db *gorm.DB) *echo.Echo {
 	e := echo.New()
 
 	// Middleware
@@ -36,22 +34,16 @@ func NewEchoServer(controllers []common.Controller, authService auth.IAuthServic
 	}))
 	swagger.GET("/*", echoSwagger.WrapHandler)
 
-	// Private group
-	privateApi := e.Group("/v0")
-	privateApi.Use(echojwt.WithConfig(echojwt.Config{
-		SigningKey: []byte(viper.GetString("JWT_KEY")),
-		NewClaimsFunc: func(c echo.Context) jwt.Claims {
-			return &auth.CustomClaims{}
-		},
-	}))
-	privateApi.Use(UserVerifiedMiddleware)
-	privateApi.Use(UserMiddleware(authService))
+	// Protected API routes with Auth0
+	api := e.Group("/api")
+	api.Use(customMiddleware.Auth0Middleware())
+	api.Use(customMiddleware.SyncUserMiddleware(db))
 
 	for _, ctrl := range controllers {
 		switch ctrl.GetType() {
 		case common.Private:
 			for _, route := range ctrl.Routes() {
-				privateApi.Add(route.Method, route.Path, route.Handler.Handle, route.Middleware...)
+				api.Add(route.Method, route.Path, route.Handler.Handle, route.Middleware...)
 			}
 		}
 	}

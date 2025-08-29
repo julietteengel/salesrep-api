@@ -33,6 +33,9 @@ func (ur UserRole) Value() (driver.Value, error) {
 type User struct {
 	common2.BaseModelV2
 
+	// Auth0 integration
+	Auth0ID string `gorm:"uniqueIndex;not null" json:"auth0_id"`
+
 	// Personal information
 	FirstName *string `json:"first_name"`
 	LastName  *string `json:"last_name"`
