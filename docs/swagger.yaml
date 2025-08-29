@@ -1,3 +1,159 @@
+definitions:
+  gorm.DeletedAt:
+    properties:
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
+    type: object
+  pkg_conversation.Conversation:
+    properties:
+      client_company:
+        type: string
+      client_email:
+        type: string
+      client_name:
+        description: Sales context
+        type: string
+      createdAt:
+        type: string
+      createdBy:
+        type: integer
+      deal_value:
+        type: number
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      deletedBy:
+        type: integer
+      description:
+        type: string
+      duration:
+        description: in seconds
+        type: integer
+      ended_at:
+        type: string
+      expected_close:
+        type: string
+      id:
+        type: integer
+      meeting_objective:
+        type: string
+      meeting_type:
+        description: Meeting context
+        type: string
+      owner_id:
+        description: Ownership
+        type: integer
+      sales_stage:
+        description: prospect, qualification, proposal, negotiation, closed
+        type: string
+      scheduled_at:
+        description: Timing
+        type: string
+      started_at:
+        type: string
+      status:
+        $ref: '#/definitions/pkg_conversation.ConversationStatus'
+      title:
+        description: Basic information
+        type: string
+      updatedAt:
+        type: string
+      updatedBy:
+        type: integer
+    type: object
+  pkg_conversation.ConversationDashboardStatsResponse:
+    properties:
+      average_deal_value:
+        type: number
+      conversions_rate:
+        description: percentage of completed deals
+        type: number
+      monthly_revenue:
+        type: number
+      revenue_trend:
+        description: percentage like "12%"
+        type: string
+      total_revenue:
+        type: number
+      trend_direction:
+        description: '"up" or "down"'
+        type: string
+    type: object
+  pkg_conversation.ConversationStatsResponse:
+    properties:
+      average_deal_value:
+        type: number
+      cancelled_count:
+        type: integer
+      completed_count:
+        type: integer
+      scheduled_count:
+        type: integer
+      total_conversations:
+        type: integer
+      total_deal_value:
+        type: number
+    type: object
+  pkg_conversation.ConversationStatus:
+    enum:
+    - scheduled
+    - in_progress
+    - completed
+    - cancelled
+    type: string
+    x-enum-varnames:
+    - ScheduledStatus
+    - InProgressStatus
+    - CompletedStatus
+    - CancelledStatus
+  pkg_conversation.CreateConversationRequest:
+    properties:
+      client_company:
+        type: string
+      client_email:
+        type: string
+      client_name:
+        type: string
+      deal_value:
+        type: number
+      description:
+        type: string
+      meeting_objective:
+        type: string
+      meeting_type:
+        type: string
+      sales_stage:
+        type: string
+      title:
+        type: string
+    required:
+    - title
+    type: object
+  pkg_conversation.UpdateConversationRequest:
+    properties:
+      client_company:
+        type: string
+      client_email:
+        type: string
+      client_name:
+        type: string
+      deal_value:
+        type: number
+      description:
+        type: string
+      meeting_objective:
+        type: string
+      meeting_type:
+        type: string
+      sales_stage:
+        type: string
+      status:
+        type: string
+      title:
+        type: string
+    type: object
 info:
   contact:
     email: juliette.engel@skema.edu
@@ -5,19 +161,286 @@ info:
   description: This is the backend for Salesrep app
   title: Salesrep backend API
 paths:
-  /api/v1/salesreps:
+  /conversations:
     get:
-      description: Get a list of all sales representatives
+      description: Get a list of conversations with optional filtering
+      operationId: GetConversations
+      parameters:
+      - description: Search in title, client name, or company
+        in: query
+        name: search
+        type: string
+      - description: Filter by status (scheduled, in_progress, completed, cancelled)
+        in: query
+        name: status
+        type: string
+      - description: Filter by sales stage
+        in: query
+        name: sales_stage
+        type: string
+      - description: Number of conversations to return (default 20)
+        in: query
+        name: limit
+        type: integer
+      - description: Number of conversations to skip (default 0)
+        in: query
+        name: offset
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: List salesreps
+            items:
+              $ref: '#/definitions/pkg_conversation.Conversation'
+            type: array
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: List conversations
       tags:
-      - salesreps
+      - Conversations
+    post:
+      consumes:
+      - application/json
+      description: Create a new conversation
+      operationId: CreateConversation
+      parameters:
+      - description: Conversation data
+        in: body
+        name: conversation
+        required: true
+        schema:
+          $ref: '#/definitions/pkg_conversation.CreateConversationRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/pkg_conversation.Conversation'
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create conversation
+      tags:
+      - Conversations
+  /conversations/{id}:
+    delete:
+      description: Delete a conversation by ID
+      operationId: DeleteConversation
+      parameters:
+      - description: Conversation ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "404":
+          description: Conversation not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Delete conversation
+      tags:
+      - Conversations
+    get:
+      description: Get a conversation by ID
+      operationId: GetConversation
+      parameters:
+      - description: Conversation ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/pkg_conversation.Conversation'
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "404":
+          description: Conversation not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get conversation
+      tags:
+      - Conversations
+    put:
+      consumes:
+      - application/json
+      description: Update a conversation by ID
+      operationId: UpdateConversation
+      parameters:
+      - description: Conversation ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated conversation data
+        in: body
+        name: conversation
+        required: true
+        schema:
+          $ref: '#/definitions/pkg_conversation.UpdateConversationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/pkg_conversation.Conversation'
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "404":
+          description: Conversation not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Update conversation
+      tags:
+      - Conversations
+  /conversations/dashboard-stats:
+    get:
+      description: Get conversation revenue and performance statistics for dashboard
+      operationId: GetConversationDashboardStats
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/pkg_conversation.ConversationDashboardStatsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get conversation dashboard statistics
+      tags:
+      - Conversations
+  /conversations/recent:
+    get:
+      description: Get recent conversations for dashboard display
+      operationId: GetRecentConversations
+      parameters:
+      - description: Number of conversations to return (default 5)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/pkg_conversation.Conversation'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get recent conversations
+      tags:
+      - Conversations
+  /conversations/stats:
+    get:
+      description: Get conversation statistics for dashboard
+      operationId: GetConversationStats
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/pkg_conversation.ConversationStatsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get conversation statistics
+      tags:
+      - Conversations
 swagger: "2.0"

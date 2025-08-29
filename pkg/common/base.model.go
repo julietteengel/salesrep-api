@@ -15,3 +15,8 @@ type BaseModelV2 struct {
 	UpdatedBy *uint
 	DeletedBy *uint
 }
+
+type BaseTranslationMandatory struct {
+	Fr string `json:"fr,omitempty"`
+	En string `json:"en,omitempty"`
+}

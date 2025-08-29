@@ -3,13 +3,16 @@ package main
 import (
 	_ "github.com/julietteengel/salesrep-api/docs"
 	"github.com/julietteengel/salesrep-api/internal/common"
+	customMiddleware "github.com/julietteengel/salesrep-api/pkg/middleware"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/swaggo/echo-swagger"
+	"gorm.io/gorm"
+
 	"net/http"
 )
 
-func NewEchoServer(controllers []common.Controller) *echo.Echo {
+func NewEchoServer(controllers []common.Controller, db *gorm.DB) *echo.Echo {
 	e := echo.New()
 
 	// Middleware
@@ -31,14 +34,16 @@ func NewEchoServer(controllers []common.Controller) *echo.Echo {
 	}))
 	swagger.GET("/*", echoSwagger.WrapHandler)
 
-	// Private group
-	privateApi := e.Group("/api/v1")
+	// Protected API routes with Auth0
+	api := e.Group("/api")
+	api.Use(customMiddleware.Auth0Middleware())
+	api.Use(customMiddleware.SyncUserMiddleware(db))
 
 	for _, ctrl := range controllers {
 		switch ctrl.GetType() {
 		case common.Private:
 			for _, route := range ctrl.Routes() {
-				privateApi.Add(route.Method, route.Path, route.Handler, route.Middleware...)
+				api.Add(route.Method, route.Path, route.Handler.Handle, route.Middleware...)
 			}
 		}
 	}

@@ -9,26 +9,671 @@
         }
     },
     "paths": {
-        "/api/v1/salesreps": {
+        "/conversations": {
             "get": {
-                "description": "Get a list of all sales representatives",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get a list of conversations with optional filtering",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "salesreps"
+                    "Conversations"
                 ],
-                "summary": "List salesreps",
+                "summary": "List conversations",
+                "operationId": "GetConversations",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search in title, client name, or company",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by status (scheduled, in_progress, completed, cancelled)",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by sales stage",
+                        "name": "sales_stage",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of conversations to return (default 20)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of conversations to skip (default 0)",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/pkg_conversation.Conversation"
                             }
                         }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
                     }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new conversation",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Conversations"
+                ],
+                "summary": "Create conversation",
+                "operationId": "CreateConversation",
+                "parameters": [
+                    {
+                        "description": "Conversation data",
+                        "name": "conversation",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/pkg_conversation.CreateConversationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/pkg_conversation.Conversation"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/conversations/dashboard-stats": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get conversation revenue and performance statistics for dashboard",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Conversations"
+                ],
+                "summary": "Get conversation dashboard statistics",
+                "operationId": "GetConversationDashboardStats",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/pkg_conversation.ConversationDashboardStatsResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/conversations/recent": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get recent conversations for dashboard display",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Conversations"
+                ],
+                "summary": "Get recent conversations",
+                "operationId": "GetRecentConversations",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Number of conversations to return (default 5)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/pkg_conversation.Conversation"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/conversations/stats": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get conversation statistics for dashboard",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Conversations"
+                ],
+                "summary": "Get conversation statistics",
+                "operationId": "GetConversationStats",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/pkg_conversation.ConversationStatsResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/conversations/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get a conversation by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Conversations"
+                ],
+                "summary": "Get conversation",
+                "operationId": "GetConversation",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Conversation ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/pkg_conversation.Conversation"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Conversation not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update a conversation by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Conversations"
+                ],
+                "summary": "Update conversation",
+                "operationId": "UpdateConversation",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Conversation ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated conversation data",
+                        "name": "conversation",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/pkg_conversation.UpdateConversationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/pkg_conversation.Conversation"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Conversation not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Delete a conversation by ID",
+                "tags": [
+                    "Conversations"
+                ],
+                "summary": "Delete conversation",
+                "operationId": "DeleteConversation",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Conversation ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Conversation not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "gorm.DeletedAt": {
+            "type": "object",
+            "properties": {
+                "time": {
+                    "type": "string"
+                },
+                "valid": {
+                    "description": "Valid is true if Time is not NULL",
+                    "type": "boolean"
+                }
+            }
+        },
+        "pkg_conversation.Conversation": {
+            "type": "object",
+            "properties": {
+                "client_company": {
+                    "type": "string"
+                },
+                "client_email": {
+                    "type": "string"
+                },
+                "client_name": {
+                    "description": "Sales context",
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "createdBy": {
+                    "type": "integer"
+                },
+                "deal_value": {
+                    "type": "number"
+                },
+                "deletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "deletedBy": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "duration": {
+                    "description": "in seconds",
+                    "type": "integer"
+                },
+                "ended_at": {
+                    "type": "string"
+                },
+                "expected_close": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "meeting_objective": {
+                    "type": "string"
+                },
+                "meeting_type": {
+                    "description": "Meeting context",
+                    "type": "string"
+                },
+                "owner_id": {
+                    "description": "Ownership",
+                    "type": "integer"
+                },
+                "sales_stage": {
+                    "description": "prospect, qualification, proposal, negotiation, closed",
+                    "type": "string"
+                },
+                "scheduled_at": {
+                    "description": "Timing",
+                    "type": "string"
+                },
+                "started_at": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/pkg_conversation.ConversationStatus"
+                },
+                "title": {
+                    "description": "Basic information",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "updatedBy": {
+                    "type": "integer"
+                }
+            }
+        },
+        "pkg_conversation.ConversationDashboardStatsResponse": {
+            "type": "object",
+            "properties": {
+                "average_deal_value": {
+                    "type": "number"
+                },
+                "conversions_rate": {
+                    "description": "percentage of completed deals",
+                    "type": "number"
+                },
+                "monthly_revenue": {
+                    "type": "number"
+                },
+                "revenue_trend": {
+                    "description": "percentage like \"12%\"",
+                    "type": "string"
+                },
+                "total_revenue": {
+                    "type": "number"
+                },
+                "trend_direction": {
+                    "description": "\"up\" or \"down\"",
+                    "type": "string"
+                }
+            }
+        },
+        "pkg_conversation.ConversationStatsResponse": {
+            "type": "object",
+            "properties": {
+                "average_deal_value": {
+                    "type": "number"
+                },
+                "cancelled_count": {
+                    "type": "integer"
+                },
+                "completed_count": {
+                    "type": "integer"
+                },
+                "scheduled_count": {
+                    "type": "integer"
+                },
+                "total_conversations": {
+                    "type": "integer"
+                },
+                "total_deal_value": {
+                    "type": "number"
+                }
+            }
+        },
+        "pkg_conversation.ConversationStatus": {
+            "type": "string",
+            "enum": [
+                "scheduled",
+                "in_progress",
+                "completed",
+                "cancelled"
+            ],
+            "x-enum-varnames": [
+                "ScheduledStatus",
+                "InProgressStatus",
+                "CompletedStatus",
+                "CancelledStatus"
+            ]
+        },
+        "pkg_conversation.CreateConversationRequest": {
+            "type": "object",
+            "required": [
+                "title"
+            ],
+            "properties": {
+                "client_company": {
+                    "type": "string"
+                },
+                "client_email": {
+                    "type": "string"
+                },
+                "client_name": {
+                    "type": "string"
+                },
+                "deal_value": {
+                    "type": "number"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "meeting_objective": {
+                    "type": "string"
+                },
+                "meeting_type": {
+                    "type": "string"
+                },
+                "sales_stage": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "pkg_conversation.UpdateConversationRequest": {
+            "type": "object",
+            "properties": {
+                "client_company": {
+                    "type": "string"
+                },
+                "client_email": {
+                    "type": "string"
+                },
+                "client_name": {
+                    "type": "string"
+                },
+                "deal_value": {
+                    "type": "number"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "meeting_objective": {
+                    "type": "string"
+                },
+                "meeting_type": {
+                    "type": "string"
+                },
+                "sales_stage": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
                 }
             }
         }

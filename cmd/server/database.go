@@ -3,7 +3,11 @@ package main
 import (
 	"fmt"
 	"github.com/joho/godotenv"
-	"github.com/julietteengel/salesrep-api/pkg/salesrep"
+	"github.com/julietteengel/salesrep-api/pkg/conversation"
+	"github.com/julietteengel/salesrep-api/pkg/call"
+	"github.com/julietteengel/salesrep-api/pkg/user"
+	"github.com/julietteengel/salesrep-api/pkg/coaching"
+	"github.com/julietteengel/salesrep-api/pkg/performance"
 	_ "github.com/lib/pq"
 	"github.com/spf13/viper"
 	"gorm.io/driver/postgres"
@@ -39,7 +43,17 @@ func NewGormDB() *gorm.DB {
 
 	log.Println("Connected to database")
 
-	if err := db.AutoMigrate(&salesrep.SalesRep{}); err != nil {
+	if err := db.AutoMigrate(
+		&user.User{},
+		&conversation.Conversation{},
+		&call.Call{},
+		&call.CallMetric{},
+		&call.CallSpeaker{},
+		&call.CallTranscript{},
+		&call.CallAnalysis{},
+		&coaching.CoachingNote{},
+		&performance.UserPerformance{},
+	); err != nil {
 		log.Printf("Migration failed: %v", err)
 		return nil
 	}
